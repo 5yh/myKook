@@ -14,11 +14,12 @@ int main(int argc, char *args[])
         return 1;
     }
     // 正式代码
-    int numDevices = SDL_GetNumAudioDevices(0);
+    //0是喇叭，1是扬声器
+    int numDevices = SDL_GetNumAudioDevices(1);
     std::cout << "numDevices:" << numDevices << std::endl;
     for (int i = 0; i < numDevices; ++i)
     {
-        const char *deviceName = SDL_GetAudioDeviceName(i, 0); // 获取第i个音频设备的名称
+        const char *deviceName = SDL_GetAudioDeviceName(i, 1); // 获取第i个音频输入设备1的名称
         std::cout << i << ": " << deviceName << std::endl;
     }
     SDL_Quit();

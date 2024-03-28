@@ -28,6 +28,11 @@ public:
             std::cout << i << ": " << deviceName << std::endl;
         }
     }
+    void showDevice(bool isMic, int index)
+    {
+        const char *deviceName = SDL_GetAudioDeviceName(index, isMic); // 获取第i个音频设备的名称
+        std::cout << index << ": " << deviceName << std::endl;
+    }
     void chooseMicDevice()
     {
         if (micNumber == 0)
@@ -45,8 +50,8 @@ public:
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清除缓冲区
             }
         } while (this->micIndex < 0 || this->micIndex >= micNumber);
-
         std::cout << "你选择的麦克风索引是：" << this->micIndex << std::endl;
+        showDevice(true, this->micIndex);
     }
 
 private:

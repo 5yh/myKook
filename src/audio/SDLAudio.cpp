@@ -30,22 +30,23 @@ public:
     }
     void chooseMicDevice()
     {
-        while (true)
+        if (micNumber == 0)
         {
-            std::cout << "请输入麦克风设备索引:" << std::endl;
-            int micIndex;
-            std::cin >> micIndex;
-            if (micIndex >= 0 && micIndex < micNumber)
-            {
-                this->micIndex = micIndex;
-                std::cout << "选择了" <<this->micIndex<<"号麦克风"<< std::endl;
-                break;
-            }
-            else
-            {
-                std::cout << "麦克风索引输入错误，请重新输入。" << std::endl;
-            }
+            std::cout << "无可用麦克风用于选择！" << std::endl;
+            return;
         }
+        do
+        {
+            std::cout << "请输入一个麦克风的索引（0 到 " << micNumber - 1 << "）：";
+            while (!(std::cin >> this->micIndex) || this->micIndex < 0 || this->micIndex >= micNumber)
+            {
+                std::cout << "输入无效，请重新输入一个有效的麦克风索引（0 到 " << micNumber - 1 << "）：";
+                std::cin.clear();                                                   // 清除错误标志
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清除缓冲区
+            }
+        } while (this->micIndex < 0 || this->micIndex >= micNumber);
+
+        std::cout << "你选择的麦克风索引是：" << this->micIndex << std::endl;
     }
 
 private:

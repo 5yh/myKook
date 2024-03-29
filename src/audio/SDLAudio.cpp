@@ -1,4 +1,5 @@
 ﻿#pragma execution_character_set("utf-8")
+// 没用上
 #include <SDL.h>
 #include <string>
 class SDLAudio

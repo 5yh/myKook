@@ -72,33 +72,34 @@ public:
             return;
         }
     }
-    // void startRecording()
-    // {
-    //     if (speakerDevice != 0)
-    //     {
-    //         SDL_PauseAudioDevice(speakerDevice, 0);
-    //         std::cout << "开始录制音频..." << std::endl;
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
-    //     }
-    // }
-
-    // void stopRecording()
-    // {
-    //     if (speakerDevice != 0)
-    //     {
-    //         SDL_PauseAudioDevice(speakerDevice, 1);
-    //         std::cout << "停止录制音频." << std::endl;
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
-    //     }
-    // }
-
-
+    void startPlayBack()
+    {
+        if (speakerDevice != 0)
+        {
+            SDL_PauseAudioDevice(speakerDevice, 0);
+            std::cout << "开始播放录制的音频..." << std::endl;
+        }
+        else
+        {
+            std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
+        }
+    }
+    void stopPlayBack()
+    {
+        if (speakerDevice != 0)
+        {
+            SDL_PauseAudioDevice(speakerDevice, 1);
+            std::cout << "停止播放录制的音频." << std::endl;
+        }
+        else
+        {
+            std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
+        }
+    }
+    void setMic(SDLMic &mic)
+    {
+        this->mic = mic;
+    }
 
 private:
     // 扬声器数量
@@ -111,11 +112,22 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 扬声器设备
     SDL_AudioDeviceID speakerDevice;
-
+    // 麦克风设备的引用
+    SDLMic &mic;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
         std::cout << "回调函数haha" << std::endl;
+        // SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
+        // if (speakerInstance != nullptr)
+        // {
+        //     SDLMic& mic = speakerInstance->mic;
+        //     if (mic.micDevice != 0)
+        //     {
+        //         SDL_memset(stream, 0, len);
+        //         SDL_DequeueAudio(mic.micDevice, stream, len);
+        //     }
+        // }
     }
 };

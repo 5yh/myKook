@@ -1,6 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include <SDL.h>
 #include <string>
+#include <fstream>
 class SDLMic
 {
 public:
@@ -62,7 +63,7 @@ public:
         this->desiredSpec.callback = audioCallback;  // 音频回调函数
         this->desiredSpec.userdata = this;
     }
-    // 有问题
+
     void initAudioDevice()
     {
         std::cout << "正在打开麦克风设备" << micDeviceName << std::endl;
@@ -101,19 +102,13 @@ public:
     }
     void startSaveWav()
     {
-        wavFile = fopen("output.wav", "wb");
-        if (wavFile == NULL)
-        {
-            printf("Failed to open output.wav for writing\n");
-            SDL_Quit();
-            // return 1;
-            return;
-        }
+        audioFile.open("recorded_audio.wav", std::ios::binary);
+        writeWavHeader(audioFile, desiredSpec.freq, desiredSpec.channels, 16); // 写入WAV文件头
     }
 
     void stopSaveWav()
     {
-        fclose(wavFile);
+        audioFile.close();
     }
 
 private:
@@ -127,18 +122,72 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 麦克风设备
     SDL_AudioDeviceID micDevice;
-    // wav文件指针
-    FILE *wavFile = nullptr;
+
+    std::ofstream audioFile;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
         std::cout << "回调函数haha" << std::endl;
-        // fwrite(stream, 1, len, wavFile);
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
-        if (micInstance != nullptr && micInstance->wavFile != nullptr)
+        if (micInstance != nullptr)
         {
-            fwrite(stream, 1, len, micInstance->wavFile);
+            micInstance->audioFile.write(reinterpret_cast<char *>(stream), len);
         }
+
+        // Write the audio data to the file
+        // file->write(reinterpret_cast<char*>(stream), len);
+    }
+    //给wav写头文件
+    void writeWavHeader(std::ofstream &file, int sampleRate, int numChannels, int bitsPerSample)
+    {
+        // WAV 文件头部分
+        const char *header = "RIFF";
+        file.write(header, 4); // Chunk ID
+
+        int fileSize = 0; // Placeholder for file size
+        file.write(reinterpret_cast<char *>(&fileSize), 4); // Placeholder for file size
+
+        const char *format = "WAVE";
+        file.write(format, 4); // Format
+
+        const char *subchunk1ID = "fmt ";
+        file.write(subchunk1ID, 4); // Subchunk1 ID
+
+        int subchunk1Size = 16;
+        file.write(reinterpret_cast<char *>(&subchunk1Size), 4); // Subchunk1 Size
+
+        short audioFormat = 1;
+        file.write(reinterpret_cast<char *>(&audioFormat), 2); // Audio Format
+
+        short numChannelsShort = static_cast<short>(numChannels);
+        file.write(reinterpret_cast<char *>(&numChannelsShort), 2); // Num Channels
+
+        int sampleRateInt = sampleRate;
+        file.write(reinterpret_cast<char *>(&sampleRateInt), 4); // Sample Rate
+
+        int byteRate = sampleRate * numChannels * bitsPerSample / 8;
+        file.write(reinterpret_cast<char *>(&byteRate), 4); // Byte Rate
+
+        short blockAlign = numChannels * bitsPerSample / 8;
+        file.write(reinterpret_cast<char *>(&blockAlign), 2); // Block Align
+
+        short bitsPerSampleShort = static_cast<short>(bitsPerSample);
+        file.write(reinterpret_cast<char *>(&bitsPerSampleShort), 2); // Bits Per Sample
+
+        const char *subchunk2ID = "data";
+        file.write(subchunk2ID, 4); // Subchunk2 ID
+
+        int dataSize = 0; // Placeholder for data size
+        file.write(reinterpret_cast<char *>(&dataSize), 4); // Placeholder for data size
+
+        // Move the file pointer to the beginning of data
+        file.seekp(4, std::ios::beg);
+        int actualFileSize = static_cast<int>(file.tellp()) - 8;
+
+        file.write(reinterpret_cast<char *>(&actualFileSize), 4); // Write actual file size
+
+        // Move the file pointer to the beginning of data size
+        file.seekp(40, std::ios::beg);
     }
 };

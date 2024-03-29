@@ -24,7 +24,7 @@ int main(int argc, char *args[])
     sdlmic->initAudioDevice();
     sdlmic->startRecording();
     sdlmic->startSaveWav();
-    SDL_Delay(3000);
+    SDL_Delay(4000);
     sdlmic->stopSaveWav();
     sdlmic->stopRecording();
     std::cout << "---------------------------------------------------" << std::endl;

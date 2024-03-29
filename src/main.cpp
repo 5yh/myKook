@@ -1,8 +1,9 @@
 ﻿#include <SDL.h>
 #include <iostream>
 #include <locale.h>
-#include "audio/SDLAudio.cpp"
+// #include "audio/SDLAudio.cpp"
 #include "audio/SDLMic.cpp"
+#include "audio/SDLSpeaker.cpp"
 int main(int argc, char *args[])
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
@@ -36,6 +37,13 @@ int main(int argc, char *args[])
     sdlmic->startRecording();
     SDL_Delay(3000);
     sdlmic->stopRecording();
+    std::cout << "---------------------------------------------------" << std::endl;
+    SDLSpeaker *sdlspeaker = new SDLSpeaker();
+    sdlspeaker->showSpeakerDevices();
+    sdlspeaker->showSpeakerDevice(0);
+    sdlspeaker->chooseSpeakerDevice();
+    sdlspeaker->setDesiredSpec();
+
     SDL_Quit();
     return 0;
 }

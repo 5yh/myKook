@@ -2,6 +2,7 @@
 #include <iostream>
 #include <locale.h>
 #include "audio/SDLAudio.cpp"
+#include "audio/SDLMic.cpp"
 int main(int argc, char *args[])
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
@@ -14,18 +15,27 @@ int main(int argc, char *args[])
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return 1;
     }
-    SDLAudio *sdlaudio = new SDLAudio();
-    sdlaudio->showDevices(true);
-    sdlaudio->chooseMicDevice();
-    sdlaudio->showDevices(false);
-    sdlaudio->chooseSpeakerDevice();
-    sdlaudio->setDesiredSpec();
-    // std::cout<<sdlaudio->getChosenDeviceName(true);
-    // std::cout << sdlaudio->getChosenDeviceName(false);
-    sdlaudio->initAudioDevice(true);
-    sdlaudio->startRecording();
+    // SDLAudio *sdlaudio = new SDLAudio();
+    // sdlaudio->showDevices(true);
+    // sdlaudio->chooseMicDevice();
+    // sdlaudio->showDevices(false);
+    // sdlaudio->chooseSpeakerDevice();
+    // sdlaudio->setDesiredSpec();
+    // // std::cout<<sdlaudio->getChosenDeviceName(true);
+    // // std::cout << sdlaudio->getChosenDeviceName(false);
+    // sdlaudio->initAudioDevice(true);
+    // sdlaudio->startRecording();
+    // SDL_Delay(3000);
+    // sdlaudio->stopRecording();
+    SDLMic *sdlmic = new SDLMic();
+    sdlmic->showMicDevices();
+    sdlmic->showMicDevice(0);
+    sdlmic->chooseMicDevice();
+    sdlmic->setDesiredSpec();
+    sdlmic->initAudioDevice();
+    sdlmic->startRecording();
     SDL_Delay(3000);
-    sdlaudio->stopRecording();
+    sdlmic->stopRecording();
     SDL_Quit();
     return 0;
 }

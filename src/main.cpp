@@ -20,7 +20,12 @@ int main(int argc, char *args[])
     sdlaudio->showDevices(false);
     sdlaudio->chooseSpeakerDevice();
     sdlaudio->setDesiredSpec();
-
+    // std::cout<<sdlaudio->getChosenDeviceName(true);
+    // std::cout << sdlaudio->getChosenDeviceName(false);
+    sdlaudio->initAudioDevice(true);
+    sdlaudio->startRecording();
+    SDL_Delay(3000);
+    sdlaudio->stopRecording();
     SDL_Quit();
     return 0;
 }

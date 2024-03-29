@@ -1,16 +1,13 @@
 ﻿#pragma execution_character_set("utf-8")
 #include <SDL.h>
+#include <string>
 class SDLAudio
 {
 public:
     SDLAudio()
     {
     }
-    static void audioCallback(void *userdata, Uint8 *stream, int len)
-    {
-        // 将捕获到的音频数据发送到输出缓冲区
-        SDL_QueueAudio(1, stream, len);
-    }
+
     void showDevices(bool isMic)
     {
         // 正式代码
@@ -55,8 +52,10 @@ public:
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清除缓冲区
             }
         } while (this->micIndex < 0 || this->micIndex >= micNumber);
-        std::cout << "你选择的麦克风索引是：" << this->micIndex << std::endl;
-        showDevice(true, this->micIndex);
+        micDeviceName = SDL_GetAudioDeviceName(micIndex, true);
+        std::cout << "你选择的麦克风是" << this->micIndex << ": " << this->micDeviceName << std::endl;
+
+        // showDevice(true, this->micIndex);
     }
     void chooseSpeakerDevice()
     {
@@ -75,8 +74,19 @@ public:
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 清除缓冲区
             }
         } while (this->speakerIndex < 0 || this->speakerIndex >= speakerNumber);
-        std::cout << "你选择的扬声器索引是：" << this->speakerIndex << std::endl;
-        showDevice(false, this->speakerIndex);
+        speakerDeviceName = SDL_GetAudioDeviceName(speakerIndex, false);
+        std::cout << "你选择的扬声器是" << this->speakerIndex << ": " << this->speakerDeviceName << std::endl;
+    }
+    std::string getChosenDeviceName(bool isMic)
+    {
+        if (isMic)
+        {
+            return micDeviceName;
+        }
+        else
+        {
+            return speakerDeviceName;
+        }
     }
     void setDesiredSpec(int sampleRate = 44100, int framesPerBuffer = 512)
     {
@@ -85,7 +95,58 @@ public:
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
         this->desiredSpec.callback = audioCallback;  // 音频回调函数
-        this->desiredSpec.userdata = NULL;
+        this->desiredSpec.userdata = this;
+    }
+    // 有问题
+    void initAudioDevice(bool isMic)
+    {
+        if (isMic)
+        {
+            std::cout << "正在打开麦克风设备" << micDeviceName << std::endl;
+            micDevice = SDL_OpenAudioDevice(micDeviceName.c_str(), true, &desiredSpec, &obtainedSpec, 0);
+            if (micDevice == 0)
+            {
+                std::cerr << "打开麦克风失败！" << SDL_GetError() << std::endl;
+                SDL_Quit();
+                return;
+            }
+        }
+        else
+        {
+            std::cout << "正在打开扬声器设备" << speakerDeviceName << std::endl;
+            speakerDevice = SDL_OpenAudioDevice(speakerDeviceName.c_str(), false, &desiredSpec, &obtainedSpec, 0);
+            if (speakerDevice == 0)
+            {
+                std::cerr << "打开扬声器失败！" << SDL_GetError() << std::endl;
+                SDL_Quit();
+                return;
+            }
+        }
+    }
+    void startRecording()
+    {
+        if (micDevice != 0)
+        {
+            SDL_PauseAudioDevice(micDevice, 0);
+            std::cout << "开始录制音频..." << std::endl;
+        }
+        else
+        {
+            std::cerr << "未选择麦克风设备或设备未初始化！" << std::endl;
+        }
+    }
+
+    void stopRecording()
+    {
+        if (micDevice != 0)
+        {
+            SDL_PauseAudioDevice(micDevice, 1);
+            std::cout << "停止录制音频." << std::endl;
+        }
+        else
+        {
+            std::cerr << "未选择麦克风设备或设备未初始化！" << std::endl;
+        }
     }
 
 private:
@@ -95,6 +156,19 @@ private:
     // 扬声器和麦克风编号
     int speakerIndex;
     int micIndex;
+    // const char * to string
+    std::string speakerDeviceName;
+    std::string micDeviceName;
     // sdl你想给的参数和实际使用的参数
     SDL_AudioSpec desiredSpec, obtainedSpec;
+    // 麦克风设备
+    SDL_AudioDeviceID micDevice;
+    // 扬声器设备
+    SDL_AudioDeviceID speakerDevice;
+    static void audioCallback(void *userdata, Uint8 *stream, int len)
+    {
+        // 将捕获到的音频数据发送到输出缓冲区
+        // SDL_QueueAudio(1, stream, len);
+        std::cout << "回调函数haha" << std::endl;
+    }
 };

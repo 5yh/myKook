@@ -18,6 +18,8 @@ int main(int argc, char *args[])
     sdlaudio->showDevices(true);
     sdlaudio->chooseMicDevice();
     sdlaudio->showDevices(false);
+    sdlaudio->chooseSpeakerDevice();
+    sdlaudio->setDesiredSpec();
 
     SDL_Quit();
     return 0;

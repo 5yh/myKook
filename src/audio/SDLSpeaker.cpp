@@ -60,7 +60,7 @@ public:
         this->desiredSpec.callback = audioCallback;  // 音频回调函数
         this->desiredSpec.userdata = this;
     }
-    // 有问题
+
     void initAudioDevice()
     {
         std::cout << "正在打开扬声器设备" << speakerDeviceName << std::endl;
@@ -96,6 +96,7 @@ public:
             std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
         }
     }
+    // 有问题 编译没过
     void setMic(SDLMic &mic)
     {
         this->mic = mic;

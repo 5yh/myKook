@@ -99,6 +99,22 @@ public:
             std::cerr << "未选择麦克风设备或设备未初始化！" << std::endl;
         }
     }
+    void startSaveWav()
+    {
+        wavFile = fopen("output.wav", "wb");
+        if (wavFile == NULL)
+        {
+            printf("Failed to open output.wav for writing\n");
+            SDL_Quit();
+            // return 1;
+            return;
+        }
+    }
+
+    void stopSaveWav()
+    {
+        fclose(wavFile);
+    }
 
 private:
     // 麦克风数量
@@ -111,10 +127,18 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 麦克风设备
     SDL_AudioDeviceID micDevice;
+    // wav文件指针
+    FILE *wavFile = nullptr;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
         std::cout << "回调函数haha" << std::endl;
+        // fwrite(stream, 1, len, wavFile);
+        SDLMic *micInstance = static_cast<SDLMic *>(userdata);
+        if (micInstance != nullptr && micInstance->wavFile != nullptr)
+        {
+            fwrite(stream, 1, len, micInstance->wavFile);
+        }
     }
 };

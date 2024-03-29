@@ -72,31 +72,33 @@ public:
             return;
         }
     }
-    void startRecording()
-    {
-        if (speakerDevice != 0)
-        {
-            SDL_PauseAudioDevice(speakerDevice, 0);
-            std::cout << "开始录制音频..." << std::endl;
-        }
-        else
-        {
-            std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
-        }
-    }
+    // void startRecording()
+    // {
+    //     if (speakerDevice != 0)
+    //     {
+    //         SDL_PauseAudioDevice(speakerDevice, 0);
+    //         std::cout << "开始录制音频..." << std::endl;
+    //     }
+    //     else
+    //     {
+    //         std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
+    //     }
+    // }
 
-    void stopRecording()
-    {
-        if (speakerDevice != 0)
-        {
-            SDL_PauseAudioDevice(speakerDevice, 1);
-            std::cout << "停止录制音频." << std::endl;
-        }
-        else
-        {
-            std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
-        }
-    }
+    // void stopRecording()
+    // {
+    //     if (speakerDevice != 0)
+    //     {
+    //         SDL_PauseAudioDevice(speakerDevice, 1);
+    //         std::cout << "停止录制音频." << std::endl;
+    //     }
+    //     else
+    //     {
+    //         std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
+    //     }
+    // }
+
+
 
 private:
     // 扬声器数量
@@ -109,6 +111,7 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 扬声器设备
     SDL_AudioDeviceID speakerDevice;
+
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区

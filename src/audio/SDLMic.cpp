@@ -147,10 +147,10 @@ private:
             // 从麦克风获取音频数据
             Uint8 *micData = new Uint8[len];
             // speakerInstance->mic->getMicData(micData, len);
-            // SDL_MixAudio(stream, micData, len, SDL_MIX_MAXVOLUME);
+            SDL_MixAudioFormat(micData, stream, micInstance->obtainedSpec.format, len, SDL_MIX_MAXVOLUME);
             // 将音频数据推送到输出缓冲区
-            SDL_QueueAudio(micInstance->speaker->getSpeakerID(), stream, len);
-
+            SDL_QueueAudio(micInstance->speaker->getSpeakerID(), micData, len);
+            //std::cout << SDL_GetError();
             // 释放内存
             delete[] micData;
         }

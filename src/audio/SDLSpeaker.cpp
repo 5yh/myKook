@@ -9,8 +9,8 @@ public:
     {
     }
     //////////////////////////////////////////////////////////////////////////////
-    Uint8 *audio_buffer;
-    Uint32 audio_length;
+    Uint8 *audio_buffer=nullptr;
+    Uint32 audio_length=0;
     void initplay()
     {
         audio_length = obtainedSpec.freq * obtainedSpec.channels * sizeof(Sint16);
@@ -30,10 +30,10 @@ public:
         }
     }
 
-    void playSound(double frequency = 500.0)
+    void playSound(double frequency = 261.63)
     {
         generateTone(frequency);
-        std::cout<<SDL_QueueAudio(speakerDevice, audio_buffer, audio_length);
+        SDL_QueueAudio(speakerDevice, audio_buffer, audio_length);
         //std::cout << SDL_GetError();
         SDL_PauseAudio(0);
     }

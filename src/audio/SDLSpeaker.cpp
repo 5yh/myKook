@@ -8,7 +8,36 @@ public:
     SDLSpeaker()
     {
     }
+    //////////////////////////////////////////////////////////////////////////////
+    Uint8 *audio_buffer;
+    Uint32 audio_length;
+    void initplay()
+    {
+        audio_length = obtainedSpec.freq * obtainedSpec.channels * sizeof(Sint16);
+        audio_buffer = new Uint8[audio_length];
+    }
 
+    void generateTone(double frequency)
+    {
+        Uint16 *samples = reinterpret_cast<Uint16 *>(audio_buffer);
+        int i;
+
+        for (i = 0; i < audio_length / 2; i++)
+        {
+            double t = static_cast<double>(i) / obtainedSpec.freq;
+            samples[i] = static_cast<Uint16>(32767.0 * 0.5 * sin(2 * M_PI * frequency * t));
+            //std::cout << samples[i] << std::endl;
+        }
+    }
+
+    void playSound(double frequency = 500.0)
+    {
+        generateTone(frequency);
+        std::cout<<SDL_QueueAudio(speakerDevice, audio_buffer, audio_length);
+        //std::cout << SDL_GetError();
+        SDL_PauseAudio(0);
+    }
+    /////////////////////////////////////////////////////////////////
     void showSpeakerDevices()
     {
         // 正式代码
@@ -58,7 +87,7 @@ public:
         this->desiredSpec.format = AUDIO_S16SYS;     // 音频格式
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
-        this->desiredSpec.callback = audioCallback;  // 音频回调函数
+        this->desiredSpec.callback = nullptr;  // 音频回调函数
         this->desiredSpec.userdata = this;
     }
 
@@ -122,7 +151,7 @@ private:
     SDLMic *mic = nullptr;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
-        std::cout << len;
+        // std::cout << len;
         int amplitude = 0;
         for (int i = 0; i < len; ++i)
         {

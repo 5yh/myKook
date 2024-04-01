@@ -16,13 +16,13 @@ int main(int argc, char *args[])
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return 1;
     }
-    SDLMic *sdlmic = new SDLMic();
-    sdlmic->showMicDevices();
-    // sdlmic->showMicDevice(0);
-    sdlmic->chooseMicDevice();
-    sdlmic->setDesiredSpec();
-    sdlmic->initAudioDevice();
-    sdlmic->startRecording();
+    //SDLMic *sdlmic = new SDLMic();
+    //sdlmic->showMicDevices();
+    //// sdlmic->showMicDevice(0);
+    //sdlmic->chooseMicDevice();
+    //sdlmic->setDesiredSpec();
+    //sdlmic->initAudioDevice();
+    //sdlmic->startRecording();
     // sdlmic->startSaveWav();
 
     std::cout << "---------------------------------------------------" << std::endl;
@@ -33,13 +33,17 @@ int main(int argc, char *args[])
     sdlspeaker->setDesiredSpec();
     sdlspeaker->initAudioDevice();
     // sdlspeaker->setMic(*sdlmic);
-    sdlmic->setSpeaker(*sdlspeaker);
+    //sdlmic->setSpeaker(*sdlspeaker);
+    sdlspeaker->initplay();
     sdlspeaker->startPlayBack();
+    while (1) {
+        sdlspeaker->playSound();
+    }
 
-    SDL_Delay(400000);
+    //SDL_Delay(400000);
     // sdlmic->stopSaveWav();
     sdlspeaker->stopPlayBack();
-    sdlmic->stopRecording();
+    //sdlmic->stopRecording();
 
     SDL_Quit();
     return 0;

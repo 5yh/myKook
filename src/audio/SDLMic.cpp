@@ -139,8 +139,9 @@ private:
     // 留作备用 回调函数2
     static void audioCallback2(void *userdata, Uint8 *stream, int len)
     {
-        // std::cout << len;
+        
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
+        //std::cout << "len"<<len <<"micInstance->obtainedSpec.samples"<<micInstance->obtainedSpec.samples << std::endl;
         // std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
         if (micInstance != nullptr && micInstance->speaker != nullptr)
         {

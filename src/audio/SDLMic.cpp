@@ -124,6 +124,11 @@ private:
     SDL_AudioDeviceID micDevice;
 
     std::ofstream audioFile;
+调用SDL_DequeueAudio()
+static void audioCallback2(void *userdata, Uint8 *stream, int len){
+
+}
+    // 保存wav的回调
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区

@@ -1,0 +1,2 @@
+SDL_QueueAudio()给喇叭使用
+Dequeue给麦克风使用

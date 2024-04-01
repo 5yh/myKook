@@ -97,10 +97,10 @@ public:
         }
     }
     // 有问题 编译没过
-    void setMic(SDLMic &mic)
-    {
-        this->mic = mic;
-    }
+    //void setMic(SDLMic &mic)
+    //{
+    //    this->mic = mic;
+    //}
 
 private:
     // 扬声器数量
@@ -113,8 +113,8 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 扬声器设备
     SDL_AudioDeviceID speakerDevice;
-    // 麦克风设备的引用
-    SDLMic &mic;
+    //// 麦克风设备的引用
+    //SDLMic &mic;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区

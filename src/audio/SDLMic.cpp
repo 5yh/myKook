@@ -139,15 +139,15 @@ private:
     // 留作备用 回调函数2
     static void audioCallback2(void *userdata, Uint8 *stream, int len)
     {
-
+        // std::cout << len;
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
-        std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
+        // std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
         if (micInstance != nullptr && micInstance->speaker != nullptr)
         {
             // 从麦克风获取音频数据
             Uint8 *micData = new Uint8[len];
             // speakerInstance->mic->getMicData(micData, len);
-
+            // SDL_MixAudio(stream, micData, len, SDL_MIX_MAXVOLUME);
             // 将音频数据推送到输出缓冲区
             SDL_QueueAudio(micInstance->speaker->getSpeakerID(), stream, len);
 
@@ -161,7 +161,7 @@ private:
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
-         //std::cout << "回调函数haha" << std::endl;
+        // std::cout << "回调函数haha" << std::endl;
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
 
         if (micInstance != nullptr)

@@ -122,6 +122,7 @@ private:
     SDLMic *mic = nullptr;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
+        std::cout << len;
         int amplitude = 0;
         for (int i = 0; i < len; ++i)
         {
@@ -140,7 +141,7 @@ private:
         // // SDL_QueueAudio(1, stream, len);
         // std::cout << "回调函数haha" << std::endl;
         SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
-        //std::cout << SDL_GetQueuedAudioSize(speakerInstance->speakerDevice);
+        // std::cout << SDL_GetQueuedAudioSize(speakerInstance->speakerDevice);
         if (speakerInstance != nullptr && speakerInstance->mic != nullptr)
         {
             // std::cout << "回调函数haha" << std::endl;

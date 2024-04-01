@@ -1,9 +1,9 @@
 ﻿#include <SDL.h>
 #include <iostream>
 #include <locale.h>
-
-#include "audio/SDLMic.cpp"
 #include "audio/SDLSpeaker.cpp"
+#include "audio/SDLMic.cpp"
+
 int main(int argc, char *args[])
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
@@ -23,21 +23,22 @@ int main(int argc, char *args[])
     sdlmic->setDesiredSpec();
     sdlmic->initAudioDevice();
     sdlmic->startRecording();
-    sdlmic->startSaveWav();
+    // sdlmic->startSaveWav();
 
     std::cout << "---------------------------------------------------" << std::endl;
-    // SDLSpeaker *sdlspeaker = new SDLSpeaker();
-    // sdlspeaker->showSpeakerDevices();
-    // // sdlspeaker->showSpeakerDevice(0);
-    // sdlspeaker->chooseSpeakerDevice();
-    // sdlspeaker->setDesiredSpec();
-    // sdlspeaker->initAudioDevice();
+    SDLSpeaker *sdlspeaker = new SDLSpeaker();
+    sdlspeaker->showSpeakerDevices();
+    // sdlspeaker->showSpeakerDevice(0);
+    sdlspeaker->chooseSpeakerDevice();
+    sdlspeaker->setDesiredSpec();
+    sdlspeaker->initAudioDevice();
     // sdlspeaker->setMic(*sdlmic);
-    // sdlspeaker->startPlayBack();
+    sdlmic->setSpeaker(*sdlspeaker);
+    sdlspeaker->startPlayBack();
 
-    SDL_Delay(4000);
-    sdlmic->stopSaveWav();
-    // sdlspeaker->stopPlayBack();
+    SDL_Delay(400000);
+    // sdlmic->stopSaveWav();
+    sdlspeaker->stopPlayBack();
     sdlmic->stopRecording();
 
     SDL_Quit();

@@ -1,6 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include <SDL.h>
 #include <string>
+class SDLMic;
 class SDLSpeaker
 {
 public:
@@ -101,6 +102,10 @@ public:
     {
         this->mic = &mic;
     }
+    SDL_AudioDeviceID getSpeakerID()
+    {
+        return speakerDevice;
+    }
 
 private:
     // 扬声器数量
@@ -117,22 +122,41 @@ private:
     SDLMic *mic = nullptr;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
-        // 将捕获到的音频数据发送到输出缓冲区
-        // SDL_QueueAudio(1, stream, len);
-        //std::cout << "回调函数haha" << std::endl;
+        int amplitude = 0;
+        for (int i = 0; i < len; ++i)
+        {
+            Uint8 sample = stream[i];
+            // 计算每个采样的振幅
+            amplitude += abs(sample - 128); // 假设音频格式是 8-bit signed
+        }
+
+        // 计算平均振幅
+        amplitude /= len;
+
+        // 显示振幅
+        // std::cout << "当前扬声器播放声音的大小：" << amplitude << std::endl;
+
+        // // 将捕获到的音频数据发送到输出缓冲区
+        // // SDL_QueueAudio(1, stream, len);
+        // std::cout << "回调函数haha" << std::endl;
         SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
+        //std::cout << SDL_GetQueuedAudioSize(speakerInstance->speakerDevice);
         if (speakerInstance != nullptr && speakerInstance->mic != nullptr)
         {
-            // 从麦克风获取音频数据
-            int micDataSize = len;
-            Uint8 *micData = new Uint8[micDataSize];
-            speakerInstance->mic->getMicData(micData, micDataSize);
+            // std::cout << "回调函数haha" << std::endl;
+            // std::cout << speakerInstance->mic->getBufferSize();
+            // SDL_AudioDeviceID micDevice = speakerInstance->mic->getMicID();
+            // int bufferSize = mic->getBufferSize();
 
-            // 将音频数据发送到输出缓冲区
-            SDL_memcpy(stream, micData, micDataSize);
+            //     // 从麦克风获取音频数据
+            // Uint8* micData = new Uint8[len];
+            //     speakerInstance->mic->getMicData(micData, len);
 
-            // 释放内存
-            delete[] micData;
+            //     // 将音频数据推送到输出缓冲区
+            //     SDL_QueueAudio(speakerInstance->speakerDevice, micData, len);
+
+            //     // 释放内存
+            //     delete[] micData;
         }
     }
 };

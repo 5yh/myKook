@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <string>
 #include <fstream>
+class SDLSpeaker;
 class SDLMic
 {
 public:
@@ -61,7 +62,7 @@ public:
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
         // this->desiredSpec.callback = audioCallback;  // 音频回调函数
-        this->desiredSpec.callback = audioCallback;  // 音频回调函数
+        this->desiredSpec.callback = audioCallback2; // 音频回调函数
         this->desiredSpec.userdata = this;
     }
 
@@ -111,28 +112,13 @@ public:
     {
         audioFile.close();
     }
-
-    void getMicData(Uint8 *buffer, int bufferSize)
+    SDL_AudioDeviceID getMicID()
     {
-        // 创建一个音频流
-        SDL_AudioStream *stream = SDL_NewAudioStream(AUDIO_S16SYS, desiredSpec.channels, desiredSpec.freq, AUDIO_S16SYS, desiredSpec.channels, desiredSpec.freq);
-        if (!stream)
-        {
-            std::cerr << "无法创建音频流：" << SDL_GetError() << std::endl;
-            return;
-        }
-
-        // 从麦克风设备读取数据到音频流中
-        SDL_AudioStreamPut(stream, buffer, bufferSize);
-
-        // 从音频流中读取数据
-        SDL_AudioStreamFlush(stream);
-
-        // 将数据复制到输出缓冲区
-        int bytesRead = SDL_AudioStreamGet(stream, buffer, bufferSize);
-
-        // 释放音频流
-        SDL_FreeAudioStream(stream);
+        return micDevice;
+    }
+    void setSpeaker(SDLSpeaker &speaker)
+    {
+        this->speaker = &speaker;
     }
 
 private:
@@ -146,11 +132,28 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 麦克风设备
     SDL_AudioDeviceID micDevice;
+    // 扬声器设备的指针
+    SDLSpeaker *speaker = nullptr;
 
     std::ofstream audioFile;
     // 留作备用 回调函数2
     static void audioCallback2(void *userdata, Uint8 *stream, int len)
     {
+
+        SDLMic *micInstance = static_cast<SDLMic *>(userdata);
+        std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
+        if (micInstance != nullptr && micInstance->speaker != nullptr)
+        {
+            // 从麦克风获取音频数据
+            Uint8 *micData = new Uint8[len];
+            // speakerInstance->mic->getMicData(micData, len);
+
+            // 将音频数据推送到输出缓冲区
+            SDL_QueueAudio(micInstance->speaker->getSpeakerID(), stream, len);
+
+            // 释放内存
+            delete[] micData;
+        }
     }
 
     // 保存wav的回调
@@ -158,15 +161,13 @@ private:
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
-        //std::cout << "回调函数haha" << std::endl;
+         //std::cout << "回调函数haha" << std::endl;
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
+
         if (micInstance != nullptr)
         {
             micInstance->audioFile.write(reinterpret_cast<char *>(stream), len);
         }
-
-        // Write the audio data to the file
-        // file->write(reinterpret_cast<char*>(stream), len);
     }
     // 给wav写头文件
     void writeWavHeader(std::ofstream &file, int sampleRate, int numChannels, int bitsPerSample)

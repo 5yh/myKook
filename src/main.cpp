@@ -18,12 +18,12 @@ int main(int argc, char *args[])
     }
     SDLMic *sdlmic = new SDLMic();
     sdlmic->showMicDevices();
-    sdlmic->showMicDevice(0);
+    // sdlmic->showMicDevice(0);
     sdlmic->chooseMicDevice();
-    sdlmic->setDesiredSpec();
-    sdlmic->initAudioDevice();
-    sdlmic->startRecording();
-    sdlmic->startSaveWav();
+    // sdlmic->setDesiredSpec();
+    // sdlmic->initAudioDevice();
+    // sdlmic->startRecording();
+    // sdlmic->startSaveWav();
 
     std::cout << "---------------------------------------------------" << std::endl;
     SDLSpeaker *sdlspeaker = new SDLSpeaker();

@@ -1,2 +1,4 @@
 SDL_QueueAudio()给喇叭使用
-Dequeue给麦克风使用
+不写回调函数，直接往里面塞push方法
+
+Dequeue取消排队

@@ -111,6 +111,29 @@ public:
         audioFile.close();
     }
 
+    void getMicData(Uint8 *buffer, int bufferSize)
+    {
+        // 创建一个音频流
+        SDL_AudioStream *stream = SDL_NewAudioStream(AUDIO_S16SYS, desiredSpec.channels, desiredSpec.freq, AUDIO_S16SYS, desiredSpec.channels, desiredSpec.freq);
+        if (!stream)
+        {
+            std::cerr << "无法创建音频流：" << SDL_GetError() << std::endl;
+            return;
+        }
+
+        // 从麦克风设备读取数据到音频流中
+        SDL_AudioStreamPut(stream, buffer, bufferSize);
+
+        // 从音频流中读取数据
+        SDL_AudioStreamFlush(stream);
+
+        // 将数据复制到输出缓冲区
+        int bytesRead = SDL_AudioStreamGet(stream, buffer, bufferSize);
+
+        // 释放音频流
+        SDL_FreeAudioStream(stream);
+    }
+
 private:
     // 麦克风数量
     int micNumber;
@@ -124,10 +147,11 @@ private:
     SDL_AudioDeviceID micDevice;
 
     std::ofstream audioFile;
-// 调用SDL_DequeueAudio()
-static void audioCallback2(void *userdata, Uint8 *stream, int len){
+    // 留作备用 回调函数2
+    static void audioCallback2(void *userdata, Uint8 *stream, int len)
+    {
+    }
 
-}
     // 保存wav的回调
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
@@ -143,14 +167,14 @@ static void audioCallback2(void *userdata, Uint8 *stream, int len){
         // Write the audio data to the file
         // file->write(reinterpret_cast<char*>(stream), len);
     }
-    //给wav写头文件
+    // 给wav写头文件
     void writeWavHeader(std::ofstream &file, int sampleRate, int numChannels, int bitsPerSample)
     {
         // WAV 文件头部分
         const char *header = "RIFF";
         file.write(header, 4); // Chunk ID
 
-        int fileSize = 0; // Placeholder for file size
+        int fileSize = 0;                                   // Placeholder for file size
         file.write(reinterpret_cast<char *>(&fileSize), 4); // Placeholder for file size
 
         const char *format = "WAVE";
@@ -183,7 +207,7 @@ static void audioCallback2(void *userdata, Uint8 *stream, int len){
         const char *subchunk2ID = "data";
         file.write(subchunk2ID, 4); // Subchunk2 ID
 
-        int dataSize = 0; // Placeholder for data size
+        int dataSize = 0;                                   // Placeholder for data size
         file.write(reinterpret_cast<char *>(&dataSize), 4); // Placeholder for data size
 
         // Move the file pointer to the beginning of data

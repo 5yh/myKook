@@ -97,10 +97,10 @@ public:
         }
     }
     // 有问题 编译没过
-    //void setMic(SDLMic &mic)
-    //{
-    //    this->mic = mic;
-    //}
+    void setMic(SDLMic &mic)
+    {
+        this->mic = &mic;
+    }
 
 private:
     // 扬声器数量
@@ -113,22 +113,26 @@ private:
     SDL_AudioSpec desiredSpec, obtainedSpec;
     // 扬声器设备
     SDL_AudioDeviceID speakerDevice;
-    //// 麦克风设备的引用
-    //SDLMic &mic;
+    // 麦克风设备的指针
+    SDLMic *mic = nullptr;
     static void audioCallback(void *userdata, Uint8 *stream, int len)
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
         std::cout << "回调函数haha" << std::endl;
-        // SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
-        // if (speakerInstance != nullptr)
-        // {
-        //     SDLMic& mic = speakerInstance->mic;
-        //     if (mic.micDevice != 0)
-        //     {
-        //         SDL_memset(stream, 0, len);
-        //         SDL_DequeueAudio(mic.micDevice, stream, len);
-        //     }
-        // }
+        SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
+        if (speakerInstance != nullptr && speakerInstance->mic != nullptr)
+        {
+            // 从麦克风获取音频数据
+            int micDataSize = len;
+            Uint8 *micData = new Uint8[micDataSize];
+            speakerInstance->mic->getMicData(micData, micDataSize);
+
+            // 将音频数据发送到输出缓冲区
+            SDL_memcpy(stream, micData, micDataSize);
+
+            // 释放内存
+            delete[] micData;
+        }
     }
 };

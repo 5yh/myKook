@@ -119,7 +119,7 @@ private:
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
-        std::cout << "回调函数haha" << std::endl;
+        //std::cout << "回调函数haha" << std::endl;
         SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
         if (speakerInstance != nullptr && speakerInstance->mic != nullptr)
         {

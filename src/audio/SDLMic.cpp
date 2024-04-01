@@ -61,7 +61,7 @@ public:
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
         // this->desiredSpec.callback = audioCallback;  // 音频回调函数
-        this->desiredSpec.callback = NULL;  // 音频回调函数
+        this->desiredSpec.callback = audioCallback;  // 音频回调函数
         this->desiredSpec.userdata = this;
     }
 
@@ -158,7 +158,7 @@ private:
     {
         // 将捕获到的音频数据发送到输出缓冲区
         // SDL_QueueAudio(1, stream, len);
-        std::cout << "回调函数haha" << std::endl;
+        //std::cout << "回调函数haha" << std::endl;
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
         if (micInstance != nullptr)
         {

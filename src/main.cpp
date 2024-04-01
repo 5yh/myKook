@@ -23,23 +23,22 @@ int main(int argc, char *args[])
     sdlmic->setDesiredSpec();
     sdlmic->initAudioDevice();
     sdlmic->startRecording();
-    // sdlmic->startSaveWav();
+    sdlmic->startSaveWav();
 
     std::cout << "---------------------------------------------------" << std::endl;
-    SDLSpeaker *sdlspeaker = new SDLSpeaker();
-    sdlspeaker->showSpeakerDevices();
-    // sdlspeaker->showSpeakerDevice(0);
-    sdlspeaker->chooseSpeakerDevice();
-    sdlspeaker->setDesiredSpec();
-    sdlspeaker->initAudioDevice();
-    sdlspeaker->setMic(*sdlmic);
-    sdlspeaker->startPlayBack();
-
+    // SDLSpeaker *sdlspeaker = new SDLSpeaker();
+    // sdlspeaker->showSpeakerDevices();
+    // // sdlspeaker->showSpeakerDevice(0);
+    // sdlspeaker->chooseSpeakerDevice();
+    // sdlspeaker->setDesiredSpec();
+    // sdlspeaker->initAudioDevice();
+    // sdlspeaker->setMic(*sdlmic);
+    // sdlspeaker->startPlayBack();
 
     SDL_Delay(4000);
-    // sdlmic->stopSaveWav();
+    sdlmic->stopSaveWav();
+    // sdlspeaker->stopPlayBack();
     sdlmic->stopRecording();
-
 
     SDL_Quit();
     return 0;

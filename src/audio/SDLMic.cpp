@@ -60,7 +60,8 @@ public:
         this->desiredSpec.format = AUDIO_S16SYS;     // 音频格式
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
-        this->desiredSpec.callback = audioCallback;  // 音频回调函数
+        // this->desiredSpec.callback = audioCallback;  // 音频回调函数
+        this->desiredSpec.callback = NULL;  // 音频回调函数
         this->desiredSpec.userdata = this;
     }
 

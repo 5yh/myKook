@@ -124,7 +124,7 @@ private:
     SDL_AudioDeviceID micDevice;
 
     std::ofstream audioFile;
-调用SDL_DequeueAudio()
+// 调用SDL_DequeueAudio()
 static void audioCallback2(void *userdata, Uint8 *stream, int len){
 
 }

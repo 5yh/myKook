@@ -3,7 +3,16 @@
 #include <locale.h>
 #include "../include/SDLSpeaker.h"
 #include "../include/SDLMic.h"
+#include <thread>
+void recordWithMic(SDLMic *sdlmic)
+{
+    sdlmic->startRecording();
+}
 
+void playWithSpeaker(SDLSpeaker *sdlspeaker)
+{
+    sdlspeaker->startPlayBack();
+}
 int main(int argc, char *args[])
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
@@ -22,7 +31,7 @@ int main(int argc, char *args[])
     sdlmic->chooseMicDevice();
     sdlmic->setDesiredSpec();
     sdlmic->initAudioDevice();
-    sdlmic->startRecording();
+    // sdlmic->startRecording();
     // sdlmic->startSaveWav();
 
     std::cout << "---------------------------------------------------" << std::endl;
@@ -34,13 +43,14 @@ int main(int argc, char *args[])
     sdlspeaker->initAudioDevice();
     // sdlspeaker->setMic(*sdlmic);
     sdlmic->setSpeaker(*sdlspeaker);
-    // sdlspeaker->initplay();
-    sdlspeaker->startPlayBack();
-    // while (1) {
-    //     sdlspeaker->playSound();
-    // }
-
-    SDL_Delay(400000);
+    // sdlspeaker->startPlayBack();
+    // 多线程
+    std::thread recordThread(recordWithMic, sdlmic);
+    std::thread playThread(playWithSpeaker, sdlspeaker);
+    SDL_Delay(10000);
+    // 多线程停止
+    recordThread.join();
+    playThread.join();
     // sdlmic->stopSaveWav();
     sdlspeaker->stopPlayBack();
     sdlmic->stopRecording();

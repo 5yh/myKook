@@ -1,7 +1,8 @@
 ﻿#include <SDL.h>
 #include <iostream>
 #include <locale.h>
-#include "audio/SDLSpeaker.cpp"
+// #include "audio/SDLSpeaker.cpp"
+#include "../include/SDLSpeaker.h"
 #include "audio/SDLMic.cpp"
 
 int main(int argc, char *args[])
@@ -18,7 +19,7 @@ int main(int argc, char *args[])
     }
     SDLMic *sdlmic = new SDLMic();
     sdlmic->showMicDevices();
-     //sdlmic->showMicDevice(0);
+    // sdlmic->showMicDevice(0);
     sdlmic->chooseMicDevice();
     sdlmic->setDesiredSpec();
     sdlmic->initAudioDevice();
@@ -34,11 +35,11 @@ int main(int argc, char *args[])
     sdlspeaker->initAudioDevice();
     // sdlspeaker->setMic(*sdlmic);
     sdlmic->setSpeaker(*sdlspeaker);
-    //sdlspeaker->initplay();
+    // sdlspeaker->initplay();
     sdlspeaker->startPlayBack();
-    //while (1) {
-    //    sdlspeaker->playSound();
-    //}
+    // while (1) {
+    //     sdlspeaker->playSound();
+    // }
 
     SDL_Delay(400000);
     // sdlmic->stopSaveWav();

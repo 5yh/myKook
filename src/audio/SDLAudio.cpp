@@ -2,6 +2,7 @@
 // 没用上
 #include <SDL.h>
 #include <string>
+#include <iostream>
 class SDLAudio
 {
 public:

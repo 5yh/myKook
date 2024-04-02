@@ -2,6 +2,8 @@
 #include <SDL.h>
 #include <string>
 #include <fstream>
+#include <iostream>
+#include "../../include/SDLSpeaker.h"
 class SDLSpeaker;
 class SDLMic
 {
@@ -141,7 +143,6 @@ private:
     static void audioCallback2(void *userdata, Uint8 *stream, int len)
     {
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
-        // std::cout << "len" << len << "micInstance->obtainedSpec.samples" << micInstance->obtainedSpec.samples << std::endl;
         //  std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
         if (micInstance != nullptr && micInstance->speaker != nullptr)
         {

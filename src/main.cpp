@@ -1,9 +1,8 @@
 ﻿#include <SDL.h>
 #include <iostream>
 #include <locale.h>
-// #include "audio/SDLSpeaker.cpp"
 #include "../include/SDLSpeaker.h"
-#include "audio/SDLMic.cpp"
+#include "../include/SDLMic.h"
 
 int main(int argc, char *args[])
 {

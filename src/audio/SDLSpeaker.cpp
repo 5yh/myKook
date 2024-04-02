@@ -90,7 +90,7 @@ void SDLSpeaker::stopPlayBack()
         std::cerr << "未选择扬声器设备或设备未初始化！" << std::endl;
     }
 }
-// 有问题 编译没过
+
 void SDLSpeaker::setMic(SDLMic &mic)
 {
     this->mic = &mic;

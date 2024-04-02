@@ -134,26 +134,25 @@ private:
     SDL_AudioDeviceID micDevice;
     // 扬声器设备的指针
     SDLSpeaker *speaker = nullptr;
-
+    // wav文件流
     std::ofstream audioFile;
+
     // 留作备用 回调函数2
     static void audioCallback2(void *userdata, Uint8 *stream, int len)
     {
-        
         SDLMic *micInstance = static_cast<SDLMic *>(userdata);
-        //std::cout << "len"<<len <<"micInstance->obtainedSpec.samples"<<micInstance->obtainedSpec.samples << std::endl;
-        // std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
+        // std::cout << "len" << len << "micInstance->obtainedSpec.samples" << micInstance->obtainedSpec.samples << std::endl;
+        //  std::cout << SDL_GetQueuedAudioSize(micInstance->micDevice);
         if (micInstance != nullptr && micInstance->speaker != nullptr)
         {
             // 从麦克风获取音频数据
-            Uint8 *micData = new Uint8[len];
-            // speakerInstance->mic->getMicData(micData, len);
-            SDL_MixAudioFormat(micData, stream, micInstance->obtainedSpec.format, len, SDL_MIX_MAXVOLUME);
+            // Uint8 *micData = new Uint8[len];
+            // SDL_MixAudioFormat(micData, stream, micInstance->obtainedSpec.format, len, SDL_MIX_MAXVOLUME);
             // 将音频数据推送到输出缓冲区
-            SDL_QueueAudio(micInstance->speaker->getSpeakerID(), micData, len);
-            //std::cout << SDL_GetError();
-            // 释放内存
-            delete[] micData;
+            SDL_QueueAudio(micInstance->speaker->getSpeakerID(), stream, len);
+            // std::cout << SDL_GetError();
+            //  释放内存
+            // delete[] micData;
         }
     }
 

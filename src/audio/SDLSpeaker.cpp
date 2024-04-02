@@ -9,8 +9,8 @@ public:
     {
     }
     //////////////////////////////////////////////////////////////////////////////
-    Uint8 *audio_buffer=nullptr;
-    Uint32 audio_length=0;
+    Uint8 *audio_buffer = nullptr;
+    Uint32 audio_length = 0;
     void initplay()
     {
         audio_length = obtainedSpec.freq * obtainedSpec.channels * sizeof(Sint16);
@@ -26,7 +26,7 @@ public:
         {
             double t = static_cast<double>(i) / obtainedSpec.freq;
             samples[i] = static_cast<Uint16>(32767.0 * 0.5 * sin(2 * M_PI * frequency * t));
-            //std::cout << samples[i] << std::endl;
+            // std::cout << samples[i] << std::endl;
         }
     }
 
@@ -34,7 +34,7 @@ public:
     {
         generateTone(frequency);
         SDL_QueueAudio(speakerDevice, audio_buffer, audio_length);
-        //std::cout << SDL_GetError();
+        // std::cout << SDL_GetError();
         SDL_PauseAudio(0);
     }
     /////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ public:
         this->desiredSpec.format = AUDIO_S16SYS;     // 音频格式
         this->desiredSpec.channels = 1;              // 声道数
         this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
-        this->desiredSpec.callback = nullptr;  // 音频回调函数
+        this->desiredSpec.callback = nullptr;        // 音频回调函数
         this->desiredSpec.userdata = this;
     }
 
@@ -164,29 +164,10 @@ private:
         amplitude /= len;
 
         // 显示振幅
-        // std::cout << "当前扬声器播放声音的大小：" << amplitude << std::endl;
-
-        // // 将捕获到的音频数据发送到输出缓冲区
-        // // SDL_QueueAudio(1, stream, len);
-        // std::cout << "回调函数haha" << std::endl;
+        std::cout << "当前扬声器播放声音的大小：" << amplitude << std::endl;
         SDLSpeaker *speakerInstance = static_cast<SDLSpeaker *>(userdata);
-        // std::cout << SDL_GetQueuedAudioSize(speakerInstance->speakerDevice);
         if (speakerInstance != nullptr && speakerInstance->mic != nullptr)
         {
-            // std::cout << "回调函数haha" << std::endl;
-            // std::cout << speakerInstance->mic->getBufferSize();
-            // SDL_AudioDeviceID micDevice = speakerInstance->mic->getMicID();
-            // int bufferSize = mic->getBufferSize();
-
-            //     // 从麦克风获取音频数据
-            // Uint8* micData = new Uint8[len];
-            //     speakerInstance->mic->getMicData(micData, len);
-
-            //     // 将音频数据推送到输出缓冲区
-            //     SDL_QueueAudio(speakerInstance->speakerDevice, micData, len);
-
-            //     // 释放内存
-            //     delete[] micData;
         }
     }
 };

@@ -2,3 +2,6 @@ SDL_QueueAudio()给喇叭使用
 不写回调函数，直接往里面塞push方法
 
 Dequeue取消排队
+
+1024 buffer len= 16位(format）（2个字节) *声道数*samples大小
+2*1*512

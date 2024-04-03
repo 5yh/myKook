@@ -49,8 +49,8 @@ int main(int argc, char *args[])
     std::thread playThread(playWithSpeaker, sdlspeaker);
     SDL_Delay(10000);
     // 多线程停止
-    recordThread.join();
     playThread.join();
+    recordThread.join();
     // sdlmic->stopSaveWav();
     sdlspeaker->stopPlayBack();
     sdlmic->stopRecording();

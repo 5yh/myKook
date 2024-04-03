@@ -4,6 +4,7 @@
 #include "../include/SDLSpeaker.h"
 #include "../include/SDLMic.h"
 #include <thread>
+#include <asio.hpp>
 void recordWithMic(SDLMic *sdlmic)
 {
     sdlmic->startRecording();
@@ -13,7 +14,13 @@ void playWithSpeaker(SDLSpeaker *sdlspeaker)
 {
     sdlspeaker->startPlayBack();
 }
-int main(int argc, char *args[])
+int main2()
+{
+    auto &&service = asio::io_service{};
+    (void)service;
+    return 0;
+}
+int main1()
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
     SDL_version v;
@@ -57,4 +64,8 @@ int main(int argc, char *args[])
 
     SDL_Quit();
     return 0;
+}
+int main(int argc, char *args[])
+{
+    return main1();
 }

@@ -5,7 +5,7 @@ project(myKook CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(SDL2 CONFIG REQUIRED)
-
+find_package(asio REQUIRED CONFIG)
 file(GLOB_RECURSE HEADER_FILES include/*.h) 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp src/audio/*.cpp)
 # include_directories(${HEADER_FILES})
@@ -20,6 +20,7 @@ else()
     message("nihao")
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
 endif()
+target_link_libraries(${PROJECT_NAME} asio::asio)
 
 # add_subdirectory(src/audio)
 

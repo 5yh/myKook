@@ -8,6 +8,7 @@ class ExampleRecipe(ConanFile):
 
     def requirements(self):
         self.requires("sdl/2.30.1")
+        self.requires("asio/1.29.0")
 
     # def generate(self):
     #     tc = CMakeToolchain(self)

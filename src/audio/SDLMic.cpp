@@ -1,4 +1,5 @@
 ﻿#include "../../include/SDLMic.h"
+
 SDLMic::SDLMic()
 {
 }
@@ -114,6 +115,19 @@ void SDLMic::setSpeaker(SDLSpeaker &speaker)
     this->speaker = &speaker;
 }
 
+void SDLMic::setClient(Client &client)
+{
+    this->client = &client;
+}
+// 回调函数3，给asio传数组
+void SDLMic::audioCallback3(void *userdata, Uint8 *stream, int len)
+{
+    SDLMic *micInstance = static_cast<SDLMic *>(userdata);
+    if (micInstance != nullptr)
+    {
+        micInstance->client->send_data(stream, len);
+    }
+}
 // 留作备用 回调函数2
 void SDLMic::audioCallback2(void *userdata, Uint8 *stream, int len)
 {

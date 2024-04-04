@@ -4,57 +4,8 @@
 #include "../include/SDLSpeaker.h"
 #include "../include/SDLMic.h"
 #include <thread>
-#include <asio.hpp>
+#include "net\netTest.cpp"
 using asio::ip::tcp;
-
-class TCPServer
-{
-private:
-    asio::io_context io_context;
-    tcp::acceptor acceptor;
-    tcp::socket socket;
-    std::vector<int> received_array;
-
-public:
-    TCPServer(int port)
-        : acceptor(io_context, tcp::endpoint(tcp::v4(), port)),
-          socket(io_context)
-    {
-
-        acceptor.accept(socket);
-        std::cout << "nihao";
-        int array_size;
-        asio::read(socket, asio::buffer(&array_size, sizeof(array_size)));
-
-        received_array.resize(array_size);
-        asio::read(socket, asio::buffer(received_array));
-    }
-
-    std::vector<int> receiveArray()
-    {
-        return received_array;
-    }
-};
-
-class TCPClient
-{
-private:
-    asio::io_context io_context;
-    tcp::socket socket;
-
-public:
-    TCPClient(const std::string &ip, int port)
-        : socket(io_context)
-    {
-        tcp::resolver resolver(io_context);
-        asio::connect(socket, resolver.resolve(ip, std::to_string(port)));
-
-        std::vector<int> arrayToSend = {1, 2, 3, 4, 5};
-        int array_size = arrayToSend.size();
-        asio::write(socket, asio::buffer(&array_size, sizeof(array_size)));
-        asio::write(socket, asio::buffer(arrayToSend));
-    }
-};
 void recordWithMic(SDLMic *sdlmic)
 {
     sdlmic->startRecording();
@@ -64,24 +15,87 @@ void playWithSpeaker(SDLSpeaker *sdlspeaker)
 {
     sdlspeaker->startPlayBack();
 }
+int main3()
+{
+    setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
+    SDL_version v;
+    SDL_GetVersion(&v);
+    std::cout << "SDL version " << int(v.major) << "." << int(v.minor) << "." << int(v.patch) << std::endl;
+    // 初始化
+    if (SDL_Init(SDL_INIT_AUDIO) != 0)
+    {
+        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        return 1;
+    }
+    SDLMic *sdlmic = new SDLMic();
+    sdlmic->showMicDevices();
+    // sdlmic->showMicDevice(0);
+    sdlmic->chooseMicDevice();
+    sdlmic->setDesiredSpec();
+    sdlmic->initAudioDevice();
+    // sdlmic->startRecording();
+    try
+    {
+        asio::io_context io_context;
+        std::thread client_thread([&io_context, &sdlmic]()
+                                  {
+                                      std::cout << "start client thread\n";
+                                      Client client(io_context, "127.0.0.1", "8080");
+                                      sdlmic->setClient(client);
+                                      sdlmic->startRecording(); });
+        SDL_Delay(10000);
+        std::cout << "111";
+        client_thread.join();
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "myException: " << e.what() << std::endl;
+    }
+    // 多线程
+    // std::thread recordThread(recordWithMic, sdlmic);
+    // std::thread playThread(playWithSpeaker, sdlspeaker);
+
+    // 多线程停止
+    // recordThread.join();
+    // sdlmic->stopSaveWav();
+    sdlmic->stopRecording();
+
+    SDL_Quit();
+    return 0;
+}
 int main2()
 {
-    const int port = 8080;
-    std::thread server_thread([&]()
-                              {
-        TCPServer server(port);
-        std::vector<int> receivedArray = server.receiveArray();
-        std::cout << "Received array: ";
-        for (int num : receivedArray) {
-            std::cout << num << " ";
-        }
-        std::cout << std::endl; });
+    // Server
+    try
+    {
+        asio::io_context io_context;
 
-    std::thread client_thread([&]()
-                              { TCPClient client("127.0.0.1", port); });
+        std::thread server_thread([&io_context]()
+                                  {
+                                    std::cout<<"start server thread\n";
+            Server server(io_context, 8080);
+            io_context.run(); });
+        std::thread client_thread([&io_context]()
+                                  {
+                                      std::cout << "start client thread\n";
+                                      Client client(io_context, "127.0.0.1", "8080");
 
-    server_thread.join();
-    client_thread.join();
+                                      Uint8 data[stream_length];  // 假设有要发送的数据
+                                      int length = stream_length; // 假设数据长度为 stream_length
+                                      while (1)
+                                      {
+                                          client.send_data(data, length);
+                                      }
+
+                                      //   std::cout<<"client after send\n";
+                                  });
+        server_thread.join();
+        client_thread.join();
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
 
     return 0;
 }
@@ -132,5 +146,5 @@ int main1()
 }
 int main(int argc, char *args[])
 {
-    return main2();
+    return main3();
 }

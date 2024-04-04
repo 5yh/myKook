@@ -56,7 +56,7 @@ void SDLMic::setDesiredSpec(int sampleRate, int framesPerBuffer)
     this->desiredSpec.channels = 1;              // 声道数
     this->desiredSpec.samples = framesPerBuffer; // 缓冲区大小
     // this->desiredSpec.callback = audioCallback;  // 音频回调函数
-    this->desiredSpec.callback = audioCallback2; // 音频回调函数
+    this->desiredSpec.callback = audioCallback3; // 音频回调函数
     this->desiredSpec.userdata = this;
 }
 
@@ -125,6 +125,7 @@ void SDLMic::audioCallback3(void *userdata, Uint8 *stream, int len)
     SDLMic *micInstance = static_cast<SDLMic *>(userdata);
     if (micInstance != nullptr)
     {
+        // std::cout << "callback3\n";
         micInstance->client->send_data(stream, len);
     }
 }

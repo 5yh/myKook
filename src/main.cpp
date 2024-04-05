@@ -35,13 +35,14 @@ int main4()
     sdlspeaker->chooseSpeakerDevice();
     sdlspeaker->setDesiredSpec();
     sdlspeaker->initAudioDevice();
+    sdlspeaker->startPlayBack();
     try
     {
         asio::io_context io_context;
         std::cout << "start server thread\n";
-        Server server(io_context, 8080, sdlspeaker);
+        Server server(io_context, 18080, sdlspeaker);
         io_context.run();
-        sdlspeaker->startPlayBack();
+
         SDL_Delay(100000);
     }
     catch (std::exception &e)
@@ -91,10 +92,10 @@ int main3()
     {
         asio::io_context io_context;
         std::cout << "start client thread\n";
-        Client client(io_context, "127.0.0.1", "8080");
+        Client client(io_context, "127.0.0.1", "18080");
         sdlmic->setClient(client);
         sdlmic->startRecording();
-        SDL_Delay(20000);
+        SDL_Delay(100000);
         std::cout << "111";
     }
     catch (std::exception &e)

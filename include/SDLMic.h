@@ -6,6 +6,7 @@
 #include <iostream>
 #include "SDLSpeaker.h" // Assuming the header file is in the same directory
 #include "../src/net/netTest.cpp"
+#include <asio.hpp>
 class SDLMic
 {
 public:

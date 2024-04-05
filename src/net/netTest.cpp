@@ -61,9 +61,10 @@ class Server
 {
 public:
     Server(asio::io_context &io_context, short port, SDLSpeaker *speaker)
-        : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), socket_(io_context), speaker(speaker)
+        : acceptor_(io_context, tcp::endpoint(tcp::v6(), port)), socket_(io_context), speaker(speaker)
     {
         // std::cout << "ni1";
+        //acceptor_.set_option(asio::ip::v6_only(false));
         do_accept();
     }
 

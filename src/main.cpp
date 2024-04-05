@@ -92,7 +92,7 @@ int main3()
     {
         asio::io_context io_context;
         std::cout << "start client thread\n";
-        Client client(io_context, "127.0.0.1", "18080");
+        Client client(io_context, "::1", "18080");
         sdlmic->setClient(client);
         sdlmic->startRecording();
         SDL_Delay(100000);
@@ -218,11 +218,11 @@ int main(int argc, char *args[])
 {
     // return main1();
     // return main2();
-    std::thread thread1(main4);
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    // std::thread thread1(main4);
+    // std::this_thread::sleep_for(std::chrono::seconds(5));
     std::thread thread2(main3);
 
-    thread1.join();
+    // thread1.join();
     thread2.join();
     // // main1();
     return 0;

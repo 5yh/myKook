@@ -92,7 +92,7 @@ int main3()
     {
         asio::io_context io_context;
         std::cout << "start client thread\n";
-        Client client(io_context, "home.1114514.xyz", "18080");
+        Client client(io_context, "127.0.0.1", "18080");
         sdlmic->setClient(client);
         sdlmic->startRecording();
         SDL_Delay(100000);

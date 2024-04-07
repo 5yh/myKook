@@ -1,8 +1,0 @@
-[settings]
-arch=x86_64
-os=Windows
-build_type=Debug
-compiler=msvc
-compiler.runtime=dynamic
-compiler.version=193
-

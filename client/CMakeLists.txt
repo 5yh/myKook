@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(myKook CXX)
+project(myKook-client CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 

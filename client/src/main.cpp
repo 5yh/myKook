@@ -6,7 +6,9 @@
 #include <thread>
 #include "net\netTest.cpp"
 #include <chrono>
+#include <nlohmann/json.hpp>
 using asio::ip::tcp;
+using json = nlohmann::json;
 void recordWithMic(SDLMic *sdlmic)
 {
     sdlmic->startRecording();
@@ -16,6 +18,7 @@ void playWithSpeaker(SDLSpeaker *sdlspeaker)
 {
     sdlspeaker->startPlayBack();
 }
+
 int main4()
 {
     setlocale(LC_ALL, ".65001"); // 设置当前区域为UTF-8
@@ -220,10 +223,10 @@ int main(int argc, char *args[])
     // return main2();
     // std::thread thread1(main4);
     // std::this_thread::sleep_for(std::chrono::seconds(5));
-    std::thread thread2(main3);
+    // std::thread thread2(main3);
 
     // thread1.join();
-    thread2.join();
+    // thread2.join();
     // // main1();
     return 0;
 }

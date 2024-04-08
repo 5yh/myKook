@@ -7,7 +7,7 @@ class ExampleRecipe(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
 
     def requirements(self):
-        self.requires("sdl/2.30.1")
+        # self.requires("sdl/2.30.1")
         self.requires("asio/1.29.0")
         self.requires("nlohmann_json/3.11.3")
 

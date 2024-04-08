@@ -8,8 +8,12 @@ class ExampleRecipe(ConanFile):
 
     def requirements(self):
         # self.requires("sdl/2.30.1")
-        self.requires("asio/1.29.0")
-        self.requires("nlohmann_json/3.11.3")
+        # self.requires("openssl/3.2.1")
+        # self.requires("asio/1.29.0")
+        self.requires("boost/1.84.0")
+        # self.requires("nlohmann_json/3.11.3")
+        # self.requires("websocketpp/0.8.2")
+        
 
     # def generate(self):
     #     tc = CMakeToolchain(self)

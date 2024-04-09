@@ -1,79 +1,144 @@
 ﻿#include <iostream>
-#include <coroutine>
+#include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/asio/spawn.hpp>
 
-struct generator
+namespace asio = boost::asio;
+namespace beast = boost::beast;
+namespace websocket = beast::websocket;
+
+using tcp = asio::ip::tcp;
+
+// WebSocket服务器
+class WebsocketServer
 {
-    struct promise_type;
-    using handle_type = std::coroutine_handle<promise_type>;
+public:
+    WebsocketServer(asio::io_context &io_context, short port)
+        : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), socket_(io_context) {}
 
-    struct promise_type
+    void start(asio::yield_context yield)
     {
-        int current_value;
-
-        auto get_return_object()
+        while (true)
         {
-            return generator{handle_type::from_promise(*this)};
+            acceptor_.async_accept(socket_, yield);
+            asio::spawn(acceptor_.get_executor(), std::bind(&WebsocketServer::session, this, std::placeholders::_1));
         }
-
-        auto initial_suspend()
-        {
-            return std::suspend_always{};
-        }
-
-        auto final_suspend() noexcept
-        {
-            return std::suspend_always{};
-        }
-
-        void unhandled_exception()
-        {
-            std::terminate();
-        }
-
-        auto yield_value(int value)
-        {
-            current_value = value;
-            return std::suspend_always{};
-        }
-    };
-
-    bool next()
-    {
-        coro.resume();
-        return !coro.done();
     }
 
-    int value() const
+    void session(asio::yield_context yield)
     {
-        return coro.promise().current_value;
-    }
+        try
+        {
+            while (true)
+            {
+                beast::flat_buffer buffer;
+                websocket::stream<tcp::socket &> ws(socket_);
+                ws.async_accept(yield);
 
-    ~generator()
-    {
-        if (coro)
-            coro.destroy();
+                for (;;)
+                {
+                    beast::error_code ec;
+                    ws.async_read(buffer, yield[ec]);
+                    if (ec == websocket::error::closed)
+                    {
+                        break;
+                    }
+                    if (ec)
+                    {
+                        throw beast::system_error{ec};
+                    }
+
+                    ws.text(ws.got_text());
+                    ws.async_write(buffer.data(), yield[ec]);
+                    if (ec)
+                    {
+                        throw beast::system_error{ec};
+                    }
+                }
+            }
+        }
+        catch (std::exception const &e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
     }
 
 private:
-    generator(handle_type h) : coro(h) {}
-
-    handle_type coro;
+    tcp::acceptor acceptor_;
+    tcp::socket socket_;
 };
 
-generator generate()
+// WebSocket客户端
+class WebsocketClient
 {
-    co_yield 1;
-    co_yield 2;
-    co_yield 3;
-}
+public:
+    WebsocketClient(asio::io_context &io_context, const std::string &host, const std::string &port)
+        : resolver_(io_context), socket_(io_context)
+    {
+        resolver_.async_resolve(host, port, asio::use_awaitable);
+    }
+
+    void connect(asio::yield_context yield)
+    {
+        auto endpoints = resolver_.async_resolve(asio::use_awaitable);
+        asio::async_connect(socket_, endpoints, yield);
+        ws_.emplace(std::move(socket_));
+        ws_->async_handshake(host_, "/", asio::use_awaitable);
+    }
+
+    void send(const std::string &message, asio::yield_context yield)
+    {
+        ws_->text(true);
+        ws_->async_write(asio::buffer(message), yield);
+    }
+
+    std::string receive(asio::yield_context yield)
+    {
+        beast::flat_buffer buffer;
+        ws_->async_read(buffer, yield);
+        return beast::buffers_to_string(buffer.data());
+    }
+
+private:
+    tcp::resolver resolver_;
+    tcp::socket socket_;
+    std::optional<websocket::stream<tcp::socket>> ws_;
+    beast::string_view host_;
+};
 
 int main()
 {
-    generator gen = generate();
-    while (gen.next())
+    try
     {
-        std::cout << gen.value() << std::endl;
+        asio::io_context io_context;
+
+        // 启动服务器
+        WebsocketServer server(io_context, 8080);
+        asio::spawn(io_context, [&server](asio::yield_context yield)
+                    { server.start(yield); });
+
+        // 连接客户端
+        WebsocketClient client(io_context, "localhost", "8080");
+        asio::spawn(io_context, [&client](asio::yield_context yield)
+                    { client.connect(yield); });
+
+        // 向服务器发送消息，并接收响应
+        asio::spawn(io_context, [&client](asio::yield_context yield)
+                    {
+            client.send("Hello from client", yield);
+            std::string response = client.receive(yield);
+            std::cout << "Server response: " << response << std::endl; });
+
+        io_context.run();
+    }
+    catch (std::exception const &e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

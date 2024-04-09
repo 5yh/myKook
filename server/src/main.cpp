@@ -1,144 +1,121 @@
-﻿#include <iostream>
-#include <boost/asio.hpp>
-#include <boost/asio/ssl.hpp>
-#include <boost/asio/use_awaitable.hpp>
+﻿//
+// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+// Official repository: https://github.com/boostorg/beast
+//
+
+//------------------------------------------------------------------------------
+//
+// Example: WebSocket server, synchronous
+//
+//------------------------------------------------------------------------------
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/spawn.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <thread>
 
-namespace asio = boost::asio;
-namespace beast = boost::beast;
-namespace websocket = beast::websocket;
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
+namespace net = boost::asio;            // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-using tcp = asio::ip::tcp;
+//------------------------------------------------------------------------------
 
-// WebSocket服务器
-class WebsocketServer
-{
-public:
-    WebsocketServer(asio::io_context &io_context, short port)
-        : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), socket_(io_context) {}
-
-    void start(asio::yield_context yield)
-    {
-        while (true)
-        {
-            acceptor_.async_accept(socket_, yield);
-            asio::spawn(acceptor_.get_executor(), std::bind(&WebsocketServer::session, this, std::placeholders::_1));
-        }
-    }
-
-    void session(asio::yield_context yield)
-    {
-        try
-        {
-            while (true)
-            {
-                beast::flat_buffer buffer;
-                websocket::stream<tcp::socket &> ws(socket_);
-                ws.async_accept(yield);
-
-                for (;;)
-                {
-                    beast::error_code ec;
-                    ws.async_read(buffer, yield[ec]);
-                    if (ec == websocket::error::closed)
-                    {
-                        break;
-                    }
-                    if (ec)
-                    {
-                        throw beast::system_error{ec};
-                    }
-
-                    ws.text(ws.got_text());
-                    ws.async_write(buffer.data(), yield[ec]);
-                    if (ec)
-                    {
-                        throw beast::system_error{ec};
-                    }
-                }
-            }
-        }
-        catch (std::exception const &e)
-        {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
-    }
-
-private:
-    tcp::acceptor acceptor_;
-    tcp::socket socket_;
-};
-
-// WebSocket客户端
-class WebsocketClient
-{
-public:
-    WebsocketClient(asio::io_context &io_context, const std::string &host, const std::string &port)
-        : resolver_(io_context), socket_(io_context)
-    {
-        resolver_.async_resolve(host, port, asio::use_awaitable);
-    }
-
-    void connect(asio::yield_context yield)
-    {
-        auto endpoints = resolver_.async_resolve(asio::use_awaitable);
-        asio::async_connect(socket_, endpoints, yield);
-        ws_.emplace(std::move(socket_));
-        ws_->async_handshake(host_, "/", asio::use_awaitable);
-    }
-
-    void send(const std::string &message, asio::yield_context yield)
-    {
-        ws_->text(true);
-        ws_->async_write(asio::buffer(message), yield);
-    }
-
-    std::string receive(asio::yield_context yield)
-    {
-        beast::flat_buffer buffer;
-        ws_->async_read(buffer, yield);
-        return beast::buffers_to_string(buffer.data());
-    }
-
-private:
-    tcp::resolver resolver_;
-    tcp::socket socket_;
-    std::optional<websocket::stream<tcp::socket>> ws_;
-    beast::string_view host_;
-};
-
-int main()
+// Echoes back all received WebSocket messages
+void
+do_session(tcp::socket socket)
 {
     try
     {
-        asio::io_context io_context;
+        // Construct the stream by moving in the socket
+        websocket::stream<tcp::socket> ws{std::move(socket)};
 
-        // 启动服务器
-        WebsocketServer server(io_context, 8080);
-        asio::spawn(io_context, [&server](asio::yield_context yield)
-                    { server.start(yield); });
+        // Set a decorator to change the Server of the handshake
+        ws.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res)
+            {
+                res.set(http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-server-sync");
+            }));
 
-        // 连接客户端
-        WebsocketClient client(io_context, "localhost", "8080");
-        asio::spawn(io_context, [&client](asio::yield_context yield)
-                    { client.connect(yield); });
+        // Accept the websocket handshake
+        ws.accept();
 
-        // 向服务器发送消息，并接收响应
-        asio::spawn(io_context, [&client](asio::yield_context yield)
-                    {
-            client.send("Hello from client", yield);
-            std::string response = client.receive(yield);
-            std::cout << "Server response: " << response << std::endl; });
+        for(;;)
+        {
+            // This buffer will hold the incoming message
+            beast::flat_buffer buffer;
 
-        io_context.run();
+            // Read a message
+            ws.read(buffer);
+
+            // Echo the message back
+            ws.text(ws.got_text());
+            ws.write(buffer.data());
+        }
     }
-    catch (std::exception const &e)
+    catch(beast::system_error const& se)
+    {
+        // This indicates that the session was closed
+        if(se.code() != websocket::error::closed)
+            std::cerr << "Error: " << se.code().message() << std::endl;
+    }
+    catch(std::exception const& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+//------------------------------------------------------------------------------
+
+int main(int argc, char* argv[])
+{
+    try
+    {
+        // Check command line arguments.
+        if (argc != 3)
+        {
+            std::cerr <<
+                "Usage: websocket-server-sync <address> <port>\n" <<
+                "Example:\n" <<
+                "    websocket-server-sync 0.0.0.0 8080\n";
+            return EXIT_FAILURE;
+        }
+        auto const address = net::ip::make_address(argv[1]);
+        auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+
+        // The io_context is required for all I/O
+        net::io_context ioc{1};
+
+        // The acceptor receives incoming connections
+        tcp::acceptor acceptor{ioc, {address, port}};
+        for(;;)
+        {
+            // This will receive the new connection
+            tcp::socket socket{ioc};
+
+            // Block until we get a connection
+            acceptor.accept(socket);
+
+            // Launch the session, transferring ownership of the socket
+            std::thread(
+                &do_session,
+                std::move(socket)).detach();
+        }
+    }
+    catch (const std::exception& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-
-    return EXIT_SUCCESS;
 }

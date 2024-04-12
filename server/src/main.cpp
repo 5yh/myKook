@@ -1,5 +1,5 @@
 ﻿//
-// Copyright (c) 2022 Klemens D. Morgenstern (klemens dot morgenstern at gmx dot net)
+// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,10 +15,9 @@
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
-#include <boost/asio/use_awaitable.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -28,24 +27,27 @@
 #include <thread>
 #include <vector>
 
-#if defined(BOOST_ASIO_HAS_CO_AWAIT)
-
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket; // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-using stream = websocket::stream<
-    typename beast::tcp_stream::rebind_executor<
-    typename net::use_awaitable_t<>::executor_with_default<net::any_io_executor>>::other>;
-
 //------------------------------------------------------------------------------
 
-// Echoes back all received WebSocket messages
-net::awaitable<void>
-do_session(stream ws)
+// Report a failure
+void fail(beast::error_code ec, char const *what)
 {
+    std::cerr << what << ": " << ec.message() << "\n";
+}
+
+// Echoes back all received WebSocket messages
+void do_session(
+    websocket::stream<beast::tcp_stream> &ws,
+    net::yield_context yield)
+{
+    beast::error_code ec;
+
     // Set suggested timeout settings for the websocket
     ws.set_option(
         websocket::stream_base::timeout::suggested(
@@ -53,108 +55,131 @@ do_session(stream ws)
 
     // Set a decorator to change the Server of the handshake
     ws.set_option(websocket::stream_base::decorator(
-        [](websocket::response_type& res)
+        [](websocket::response_type &res)
         {
             res.set(http::field::server,
-            std::string(BOOST_BEAST_VERSION_STRING) +
-            " websocket-server-coro");
+                    std::string(BOOST_BEAST_VERSION_STRING) +
+                        " websocket-server-coro");
         }));
 
     // Accept the websocket handshake
-    co_await ws.async_accept();
+    ws.async_accept(yield[ec]);
+    if (ec)
+        return fail(ec, "accept");
 
     for (;;)
-        try {
+    {
         // This buffer will hold the incoming message
         beast::flat_buffer buffer;
 
         // Read a message
-        co_await ws.async_read(buffer);
+        ws.async_read(buffer, yield[ec]);
+
+        // This indicates that the session was closed
+        if (ec == websocket::error::closed)
+            break;
+
+        if (ec)
+            return fail(ec, "read");
 
         // Echo the message back
         ws.text(ws.got_text());
-        co_await ws.async_write(buffer.data());
-
-    }
-    catch (boost::system::system_error& se)
-    {
-        if (se.code() != websocket::error::closed)
-            throw;
-
+        std::cout << std::string(boost::asio::buffers_begin(buffer.data()), boost::asio::buffers_end(buffer.data()));
+        //std::cout << ws.got_text();
+        ws.async_write(buffer.data(), yield[ec]);
+        if (ec)
+            return fail(ec, "write");
     }
 }
 
 //------------------------------------------------------------------------------
 
 // Accepts incoming connections and launches the sessions
-net::awaitable<void>
-do_listen(
-    tcp::endpoint endpoint)
+void do_listen(
+    net::io_context &ioc,
+    tcp::endpoint endpoint,
+    net::yield_context yield)
 {
+    beast::error_code ec;
 
     // Open the acceptor
-    auto acceptor = net::use_awaitable.as_default_on(tcp::acceptor(co_await net::this_coro::executor));
-    acceptor.open(endpoint.protocol());
+    tcp::acceptor acceptor(ioc);
+    acceptor.open(endpoint.protocol(), ec);
+    if (ec)
+        return fail(ec, "open");
 
     // Allow address reuse
-    acceptor.set_option(net::socket_base::reuse_address(true));
+    acceptor.set_option(net::socket_base::reuse_address(true), ec);
+    if (ec)
+        return fail(ec, "set_option");
 
     // Bind to the server address
-    acceptor.bind(endpoint);
+    acceptor.bind(endpoint, ec);
+    if (ec)
+        return fail(ec, "bind");
 
     // Start listening for connections
-    acceptor.listen(net::socket_base::max_listen_connections);
+    acceptor.listen(net::socket_base::max_listen_connections, ec);
+    if (ec)
+        return fail(ec, "listen");
 
     for (;;)
-        boost::asio::co_spawn(
-            acceptor.get_executor(),
-            do_session(stream(co_await acceptor.async_accept())),
-            [](std::exception_ptr e)
-            {
-                try
-                {
-                    std::rethrow_exception(e);
-                }
-                catch (std::exception& e) {
-                    std::cerr << "Error in session: " << e.what() << "\n";
-                }
-            });
+    {
+        tcp::socket socket(ioc);
+        acceptor.async_accept(socket, yield[ec]);
+        if (ec)
+            fail(ec, "accept");
+        else
+            boost::asio::spawn(
+                acceptor.get_executor(),
+                std::bind(
+                    &do_session,
+                    websocket::stream<
+                        beast::tcp_stream>(std::move(socket)),
+                    std::placeholders::_1),
+                // we ignore the result of the session,
+                // most errors are handled with error_code
+                boost::asio::detached);
+    }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     // Check command line arguments.
-    if (argc != 4)
+    /*if (argc != 4)
     {
-        std::cerr <<
-            "Usage: websocket-server-awaitable <address> <port> <threads>\n" <<
-            "Example:\n" <<
-            "    websocket-server-awaitable 0.0.0.0 8080 1\n";
+        std::cerr << "Usage: websocket-server-coro <address> <port> <threads>\n"
+                  << "Example:\n"
+                  << "    websocket-server-coro 0.0.0.0 8080 1\n";
         return EXIT_FAILURE;
-    }
-    auto const address = net::ip::make_address(argv[1]);
-    auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
-    auto const threads = std::max<int>(1, std::atoi(argv[3]));
-
+    }*/
+     //auto const address = net::ip::make_address(argv[1]);
+     //auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+     //auto const threads = std::max<int>(1, std::atoi(argv[3]));
+    auto const address = net::ip::make_address("127.0.0.1");
+    auto const port = static_cast<unsigned short>(12345);
+    auto const threads =std::max<int>(1,4);
     // The io_context is required for all I/O
     net::io_context ioc(threads);
 
     // Spawn a listening port
-    boost::asio::co_spawn(
-        ioc,
-        do_listen(tcp::endpoint{ address, port }),
-        [](std::exception_ptr e)
-        {
-            if (e)
-                try
-            {
-                std::rethrow_exception(e);
-            }
-            catch (std::exception& e)
-            {
-                std::cerr << "Error: " << e.what() << "\n";
-            }
-        });
+    boost::asio::spawn(ioc,
+                       std::bind(
+                           &do_listen,
+                           std::ref(ioc),
+                           tcp::endpoint{address, port},
+                           std::placeholders::_1),
+                       // on completion, spawn will call this function
+                       [](std::exception_ptr ex)
+                       {
+                           // if an exception occurred in the coroutine,
+                           // it's something critical, e.g. out of memory
+                           // we capture normal errors in the ec
+                           // so we just rethrow the exception here,
+                           // which will cause `ioc.run()` to throw
+                           if (ex)
+                               std::rethrow_exception(ex);
+                       });
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;
@@ -169,13 +194,3 @@ int main(int argc, char* argv[])
 
     return EXIT_SUCCESS;
 }
-
-#else
-
-int main(int, char* [])
-{
-    std::printf("awaitables require C++20\n");
-    return 1;
-}
-
-#endif

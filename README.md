@@ -6,6 +6,12 @@
 
 This is an audio recording and playback project based on SDL2 and ASIO, including client and server sides. The client is responsible for recording audio and sending it to the server over the network, and the server receives and plays the audio.
 
+## Project Features
+
+- **Audio Recording and Playback**: Uses the SDL2 library to manage audio devices, record, and play audio.
+- **Network Communication**: Uses the ASIO library to transmit audio data between the client and server.
+- **Multithreading**: Supports multithreading to ensure real-time audio recording and playback.
+
 ## Directory Structure
 
 ```
@@ -125,12 +131,6 @@ server/
     ```sh
     myKook-server.exe
     ```
-
-## Project Features
-
-- **Audio Recording and Playback**: Uses the SDL2 library to manage audio devices, record, and play audio.
-- **Network Communication**: Uses the ASIO library to transmit audio data between the client and server.
-- **Multithreading**: Supports multithreading to ensure real-time audio recording and playback.
 
 ## License
 
